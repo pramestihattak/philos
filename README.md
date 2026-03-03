@@ -2,7 +2,7 @@
 
 Personal RAG + LLM service. Feed it your documents, ask it questions, get answers grounded in your own knowledge base — fully local, no cloud APIs.
 
-**Stack:** Ollama (llama3.1:8b + nomic-embed-text) · ChromaDB · FastAPI
+**Stack:** Ollama (qwen3.5:9b + nomic-embed-text) · ChromaDB · FastAPI
 
 ---
 
@@ -14,7 +14,7 @@ Personal RAG + LLM service. Feed it your documents, ask it questions, get answer
 brew install ollama
 ollama serve   # keep running in a separate terminal
 
-ollama pull llama3.1:8b-instruct-q4_K_M
+ollama pull qwen3.5:9b
 ollama pull nomic-embed-text
 ```
 
@@ -110,14 +110,15 @@ curl -X POST http://localhost:8000/inference \
   "sources": [
     {"doc_id": "abc123", "filename": "notes.pdf", "chunk_index": 2, "score": 0.91}
   ],
-  "model": "llama3.1:8b-instruct-q4_K_M",
+  "model": "qwen3.5:9b",
   "tokens": 312
 }
 ```
 
 ### `POST /inference/stream`
 
-Same as `/inference` but streams tokens as they are generated using [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events). Useful when the full response takes 10–30 seconds and you want to show output in real time.
+Same as `/inference` but streams tokens as they are generated using [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events). Useful when the full response takes several seconds and you want to show output in real time.
+
 ```bash
 # -N disables curl's output buffering
 curl -N -X POST http://localhost:8000/inference/stream \
@@ -133,7 +134,7 @@ data: {"type":"token","content":"Based"}
 data: {"type":"token","content":" on"}
 data: {"type":"token","content":" your notes"}
 ...
-data: {"type":"done","answer":"Based on your notes...","sources":[...],"model":"llama3.1:8b-instruct-q4_K_M","tokens":312}
+data: {"type":"done","answer":"Based on your notes...","sources":[...],"model":"qwen3.5:9b","tokens":312}
 ```
 
 On error: `data: {"type":"error","message":"..."}`.
@@ -175,7 +176,7 @@ All settings can be overridden via environment variables or `.env` file:
 | Variable | Default | Description |
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
-| `LLM_MODEL` | `llama3.1:8b-instruct-q4_K_M` | Generation model |
+| `LLM_MODEL` | `qwen3.5:9b` | Generation model |
 | `EMBED_MODEL` | `nomic-embed-text` | Embedding model |
 | `CHROMA_PERSIST_DIR` | `./data/vectorstore` | ChromaDB storage path |
 | `DOCUMENTS_DIR` | `./data/documents` | Document drop folder |
@@ -202,19 +203,7 @@ User Query → POST /inference
               ↓
          Build context prompt
               ↓
-         LLM generation (llama3.1:8b via Ollama)
+         LLM generation (qwen3.5:9b via Ollama)
               ↓
          Return answer + source citations
-```
-
----
-
-## Notes on Fine-Tuning
-
-RAG is the right approach for local M3 Pro because fine-tuning requires sustained GPU training not available here. If you want to fine-tune later, use Apple's MLX framework:
-
-```bash
-pip install mlx-lm
-python -m mlx_lm.lora --model mlx-community/Llama-3.1-8B-Instruct-4bit \
-  --train --data path/to/jsonl --iters 1000
 ```
