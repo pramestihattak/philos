@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=70.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "philos"
+version = "0.1.0"
+description = "Personal RAG + LLM service powered by Ollama and ChromaDB"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[project.scripts]
+philos-ingest = "scripts.ingest:app"
